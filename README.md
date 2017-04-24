@@ -1,6 +1,3 @@
-# react_movie_search
-small project for an interview
-
 # instructions
 
 to add a movie to the list simply fill all of the fields, the actors field can accept multiple actors if you separate them with a coma (,)
