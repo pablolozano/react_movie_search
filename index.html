@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" name="viewport" content="width=device-width, initial-scale=1">
+    <title>Movies</title>
+    <link rel="stylesheet" href="css/w3.css">
+    <link rel="stylesheet" href="css/w3-theme-black.css">
+    <link rel="stylesheet" href="css/Roboto.css">
+    <link rel="stylesheet" href="css/font-awesome.min.css">
+    <style>
+      html,body,h1,h2,h3,h4,h5,h6 {font-family: "Roboto", sans-serif}
+    </style>
+    <script src="https://unpkg.com/react@latest/dist/react.js"></script>
+    <script src="https://unpkg.com/react-dom@latest/dist/react-dom.js"></script>
+    <script src="https://unpkg.com/babel-standalone@6.15.0/babel.min.js"></script>
+  </head>
+  <body class="w3-grey">
+
+    <div class="w3-grey">
+        <div class="w3-container w3-black" style="text-align:center;">
+            <h2>Add Movie</h2>
+        </div>
+        <div class="w3-row">
+          <div class="w3-container w3-quarter">
+          </div>
+
+            <div id="form-root"></div>
+
+          <div class="w3-container w3-quarter">
+          </div>
+      </div>
+      <div class="w3-container w3-black" style="text-align:center;">
+          <h2>List of Movies</h2>
+      </div>
+      <div class="w3-row">
+        <div class="w3-container w3-quarter">
+        </div>
+        <div class="w3-container w3-half">
+
+            <div id="list-root"></div>
+
+        </div>
+        <div class="w3-container w3-quarter">
+        </div>
+      </div>
+    </div>
+
+
+
+
+
+
+    <script type="text/babel">
+    /*actors!!!!!!!!!!!!!!*/
+    /*movie imput into localstorage*/
+    /*functions to handle local storage*/
+
+    /*
+    <button onClick={SearchValidate name="title" value={this.title} }>
+      Search
+    </button>*/
+
+
+
+
+    class NameForm extends React.Component {
+      constructor(props) {
+        super(props);
+        this.handleChange = this.handleChange.bind(this);
+        this.handleSubmit = this.handleSubmit.bind(this);
+      }
+
+      handleChange(event) {
+        var Search;
+        var Type;
+        var Value;
+        if(this.title.value != "" && !this.year.value && !this.actors.value){
+          Search = true;
+          Type = "title";
+          Value = this.title.value;
+        }else if(this.year.value != "" && !this.title.value && !this.actors.value){
+          Search = true;
+          Type = "year";
+          Value = this.year.value;
+        }else if(this.actors.value != "" && !this.title.value && !this.year.value){
+          Search = true;
+          Type = "actors";
+          Value = this.actors.value;
+        }else{
+          Search = false;
+        }
+        var movie = {search:Search, type:Type, value:Value};
+        reRender(movie);
+      }
+
+      handleSubmit(event) {
+        if(this.title.value && this.year.value && this.actors.value){
+          var actorsArr = this.actors.value.split(',');
+          var movieObj = {title: this.title.value, year: this.year.value, actors: actorsArr};
+          var itemNumber = localStorage.length;
+          localStorage.setItem(itemNumber, JSON.stringify(movieObj));
+          /*var title = JSON.parse(localStorage.getItem(itemNumber)).title;
+          var year = JSON.parse(localStorage.getItem(itemNumber)).year;
+          alert('Title: ' + title + ' Year: ' + year);*/
+          var auxObj = {search:false};
+          reRender(auxObj);
+        }else{
+          alert("you must input tile year and at least one actor");
+        }
+        //alert(localStorage.length);
+        event.preventDefault();
+        /*for(var i=0; i<localStorage.length; i++) {
+          alert('Title: ' + JSON.parse(localStorage.getItem(i)).title + ' Year: ' + JSON.parse(localStorage.getItem(i)).year);
+        }*/
+      }
+
+      render() {
+        return (
+          <div className="w3-container w3-half w3-margin">
+            <form onSubmit={this.handleSubmit}>
+              <label>
+                Title:
+                <input className="w3-input w3-round w3-light-grey" type="text" onChange={this.handleChange} ref={(input) => this.title = input} />
+              </label>
+              <label>
+                Year:
+                <input className="w3-input w3-round w3-light-grey" type="text" onChange={this.handleChange} ref={(input) => this.year = input} />
+              </label>
+              <label>
+                Actors (separate by a comma) :
+                <input className="w3-input w3-round w3-light-grey" type="text" onChange={this.handleChange} ref={(input) => this.actors = input} />
+              </label>
+              <input type="submit" value="Submit" />
+            </form>
+          </div>
+        );
+      }
+    }
+
+
+
+    function CramActors(actor, index){
+      var uniqueKey = actor + "-" + index;
+      return(
+        <li className="MovieInfo-actor" key={uniqueKey}>
+          <span>
+            {actor}
+          </span>
+        </li>
+      );
+    }
+
+    function ListItem(movie,index){
+      var indents = [];
+      for(var i=0; i<movie.actors.length; i++) {
+        indents.push(
+          CramActors(movie.actors[i], i)
+        );
+      }
+      return(
+        <li className="MovieInfo w3-round w3-light-grey w3-margin" key={index}>
+          <span className="MovieInfo-title w3-large">
+            {movie.title}
+          </span>
+          <span className="MovieInfo-year">
+            ({movie.year})
+          </span>
+          <ul>
+            {indents}
+          </ul>
+        </li>
+      );
+    }
+
+
+
+    function MovieInfo(props) {
+      var indents = [];
+      if(!props.search){
+        for(var i=0; i<localStorage.length; i++) {
+          var movie = JSON.parse(localStorage.getItem(i));
+          indents.push(
+            ListItem(movie,i)
+          );
+        }
+      }else{
+        if(localStorage.length != 0){
+          for(var i=0; i<localStorage.length; i++) {
+            var movie = JSON.parse(localStorage.getItem(i));
+            console.log(props.type);
+            if(props.type == "title"){
+              if(movie.title.includes(props.value)){
+                indents.push(
+                  ListItem(movie,i)
+                );
+              }
+            }else if(props.type == "year"){
+              if(movie.year == props.value){
+                indents.push(
+                  ListItem(movie,i)
+                );
+              }
+            }else if(props.type == "actors"){
+              for(var j=0; j<movie.actors.length; j++) {
+                if(movie.actors[j].includes(props.value)){
+                  console.log("found");
+                  indents.push(
+                    ListItem(movie,i)
+                  );
+                }
+              }
+            }else{
+              alert("errors");
+            }
+          }
+        }
+      }
+      return (
+         <div>
+          <ul className="w3-ul w3-margin w3-hoverable w3-padding-16 w3-grey">
+            {indents}
+          </ul>
+         </div>
+      );
+    }
+
+    function reRender(obj){
+      if(obj.search){
+        ReactDOM.render(
+          <MovieInfo search={true} type={obj.type} value={obj.value}/>,
+          document.getElementById('list-root')
+        );
+      }else{
+        ReactDOM.render(
+          <MovieInfo search={false}/>,
+          document.getElementById('list-root')
+        );
+      }
+
+    }//possible replace with states
+
+    ReactDOM.render(
+      <NameForm />,
+      document.getElementById('form-root')
+    );
+    ReactDOM.render(
+      <MovieInfo />,
+      document.getElementById('list-root')
+    );
+
+
+
+    /*turn movies from localstorage json into js objects*/
+
+    /*must auto update*/
+
+
+    </script>
+
+  </body>
+</html>
